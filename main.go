@@ -79,9 +79,10 @@ func main() {
 	r.HandleFunc("/__version__", getVersion).Methods("GET")
 
 	// handle static files
-	r.Handle("/statics/{staticfile}",
-		http.StripPrefix("/statics/", http.FileServer(http.Dir("./statics"))),
-	).Methods("GET")
+	r.HandleFunc("/statics/{staticfile}", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("X-Content-Type-Options", "nosniff")
+		http.StripPrefix("/statics/", http.FileServer(http.Dir("./statics"))).ServeHTTP(w, r)
+	}).Methods("GET")
 
 	log.Fatal(http.ListenAndServe(":8080",
 		HandleMiddlewares(
